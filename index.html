@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DataKarp</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div style="display: flex; align-items: center">
+      <h1>DataKarp</h1>
+    </div>
+    <button id="toggleThemeButton" class="floating-button">
+      <img src="assets/theme.png" width="20px" />
+    </button>
+    <div class="header">
+      <label for="deckSelect">Escolha o Deck:</label>
+      <select id="deckSelect"></select>
+
+      <label for="tournamentSelect">Escolha o Torneio:</label>
+      <select id="tournamentSelect"></select>
+
+      <button id="getDataButton" class="btn">Buscar</button>
+    </div>
+
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin-top: 16px;
+      "
+    >
+      <div style="display: flex; flex-direction: column; align-items: center">
+        <div class="radio-group">
+          <input type="radio" id="total" name="day" value="Total" checked />
+          <label for="total">Total</label>
+
+          <input type="radio" id="day1" name="day" value="Dia 1" />
+          <label for="day1">Dia 1</label>
+
+          <input type="radio" id="day2" name="day" value="Dia 2" />
+          <label for="day2">Dia 2</label>
+        </div>
+
+        <canvas id="chart" width="1058px"></canvas>
+        <div id="summary"></div>
+      </div>
+    </div>
+
+    <footer>
+      <p style="display: flex; justify-content: center; align-items: center">
+        Contate-nos 📧 ganeko.software@gmail.com
+        <img src="assets/shiny-magikarp.png" width="32px" />
+      </p>
+    </footer>
+
+    <script>
+      const root = document.documentElement;
+      const toggleThemeButton = document.getElementById("toggleThemeButton");
+
+      let isDarkMode = true;
+
+      toggleThemeButton.addEventListener("click", () => {
+        if (isDarkMode) {
+          root.style.setProperty("--background", "#FFE4B5");
+          root.style.setProperty("--text-color", "#000000");
+          root.style.setProperty("--highlight-color", "#ff4500");
+          root.style.setProperty("--border-color", "#ff4500");
+          root.style.setProperty("--secondary-bg", "#ffebcd");
+          root.style.setProperty("--secondary-text", "#333333");
+          root.style.setProperty("--shadow-color", "#aaaaaa");
+        } else {
+          root.style.setProperty("--background", "#1e1e2e");
+          root.style.setProperty("--text-color", "#ffffff");
+          root.style.setProperty("--highlight-color", "#ff6347");
+          root.style.setProperty("--border-color", "#ff4500");
+          root.style.setProperty("--secondary-bg", "#2e2e42");
+          root.style.setProperty("--secondary-text", "#ffebcd");
+          root.style.setProperty("--shadow-color", "#8b0000");
+        }
+
+        renderChart(
+          radioActive ? dataChart[radioActive] : [],
+          selectedDeck ?? "decks",
+          selectedTournament ?? "Torneio"
+        );
+        isDarkMode = !isDarkMode;
+      });
+
+      let dataChart;
+      let selectedDeck;
+      let selectedTournament;
+      let radioActive;
+      let chart;
+
+      const decks_imgs = {
+        "Regidrago V": "regidrago",
+        "Charizard ex": "charizard",
+        "Raging Bolt ex": "raio-furia",
+        "Lost Zone Box": "comfey",
+        "Gholdengo ex": "gholdengo",
+        "Miraidon ex": "miraidon",
+        Snorlax: "snorlax",
+        "Terapagos ex": "terapagos",
+        Klawf: "uk",
+        "Lugia V": "lugia",
+        "Banette ex": "uk",
+        "Origin Forme Dialga V": "uk",
+        "Archaludon ex": "uk",
+        "Origin Forme Palkia V": "palkia",
+        "Iron Thorns ex": "espinhos-ferreos",
+        "Hydreigon ex": "uk",
+        "Chien-Pao ex": "chien-pao",
+        "Gouging Fire ex": "uk",
+        "Gardevoir ex": "gardevoir",
+        "Dragapult ex": "dragapult",
+        "Ancient Box": "lua-estrondo",
+        "Roaring Moon ex": "lua-estrondo",
+      };
+
+      async function fetchData() {
+        const response = await fetch("http://localhost:3000/data");
+        return await response.json();
+      }
+
+      function populateSelectors(data) {
+        const deckSelect = document.getElementById("deckSelect");
+        const tournamentSelect = document.getElementById("tournamentSelect");
+
+        const decks = data.decks.sort();
+        decks.forEach((deck) => {
+          const option = document.createElement("option");
+          option.value = deck;
+          option.textContent = deck;
+          deckSelect.appendChild(option);
+        });
+
+        const tournaments = data.tournaments;
+        tournaments.forEach((tournament) => {
+          const option = document.createElement("option");
+          option.value = tournament;
+          option.textContent = tournament;
+          tournamentSelect.appendChild(option);
+        });
+      }
+
+      function renderChart(data, deck, tournament = "Torneio") {
+        const ctx = document.getElementById("chart").getContext("2d");
+
+        if (chart) {
+          chart.destroy();
+        }
+
+        const labels = Object.keys(data);
+        const victories = labels.map((deck) => data[deck].victories);
+        const defeats = labels.map((deck) => data[deck].defeats);
+        const draws = labels.map((deck) => data[deck].draws);
+
+        const configuration = {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Vitórias",
+                data: victories,
+                backgroundColor: "rgba(75, 192, 192, 0.6)",
+              },
+              {
+                label: "Derrotas",
+                data: defeats,
+                backgroundColor: "rgba(255, 99, 132, 0.6)",
+              },
+              {
+                label: "Empates",
+                data: draws,
+                backgroundColor: "rgba(255, 205, 86, 0.6)",
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              title: {
+                display: true,
+                text: `${deck} contra Adversários - ${tournament}`,
+                font: {
+                  size: 24,
+                },
+                color: getComputedStyle(document.documentElement)
+                  .getPropertyValue("--highlight-color")
+                  .trim(),
+              },
+              legend: {
+                labels: {
+                  color: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--text-color")
+                    .trim(),
+                },
+              },
+            },
+            responsive: true,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "Adversários",
+                  color: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--text-color")
+                    .trim(),
+                },
+                ticks: {
+                  color: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--text-color")
+                    .trim(),
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "Número de Partidas",
+                  color: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--text-color")
+                    .trim(),
+                },
+                ticks: {
+                  stepSize: 1,
+                  color: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--text-color")
+                    .trim(),
+                },
+              },
+            },
+          },
+        };
+
+        chart = new Chart(ctx, configuration);
+      }
+
+      const createDeckSummary = (data) => {
+        const div = document.createElement("div");
+        div.className = "deck-block-summary";
+
+        const img = document.createElement("img");
+
+        img.src = decks_imgs[data.name]
+          ? `assets/${decks_imgs[data.name]}.png`
+          : "assets/uk.png";
+        img.alt = data.name;
+        img.className = "deck-image-main";
+
+        const info1 = document.createElement("div");
+        info1.className = "deck-info";
+
+        info1.innerHTML = `
+            <h3>Dia 1</h3>
+            <p>Jogadores: ${data?.amount ?? "ND"}${
+          data?.percentage * 100 ? " (" + data?.percentage * 100 + "%)" : ""
+        }</p>
+            <p>Vitorias: ${data.records.day1.victories}</p>
+            <p>Derrotas: ${data.records.day1.defeats}</p>
+            <p>Empates: ${data.records.day1.draws}</p>
+            <p>Saldo: ${
+              data.records.day1.victories - data.records.day1.defeats
+            }</p>
+        `;
+
+        const info2 = document.createElement("div");
+        info2.className = "deck-info";
+
+        info2.innerHTML = `
+            <h3>Dia 2</h3>
+            <p>Jogadores: ${data?.amount_day2 ?? "ND"}${
+          data?.percentage * 100 ? " (" + data?.percentage * 100 + "%)" : ""
+        }</p>
+            <p>Vitorias: ${data.records.day2.victories}</p>
+            <p>Derrotas: ${data.records.day2.defeats}</p>
+            <p>Empates: ${data.records.day2.draws}</p>
+            <p>Saldo: ${
+              data.records.day2.victories - data.records.day2.defeats
+            }</p>
+        `;
+
+        const info3 = document.createElement("div");
+        info3.className = "deck-info";
+
+        info3.innerHTML = `
+            <h3>Melhores Colocações</h3>
+        `;
+
+        if (!data.placings?.length) {
+          info3.innerHTML += `<p>ND</p>`;
+        } else {
+          data.placings.splice(0, 5).forEach((placing) => {
+            info3.innerHTML += `<p>${placing.placing}º - ${placing.name}</p>`;
+          });
+        }
+
+        div.appendChild(img);
+        div.appendChild(info1);
+        div.appendChild(info2);
+        div.appendChild(info3);
+        return div;
+      };
+
+      const createDeckBlock = (deck) => {
+        const div = document.createElement("div");
+        div.className = "deck-block";
+
+        const img = document.createElement("img");
+
+        img.src = decks_imgs[deck.deck]
+          ? `assets/${decks_imgs[deck.deck]}.png`
+          : "assets/uk.png";
+        img.alt = deck.deck;
+        img.className = "deck-image";
+
+        const info = document.createElement("div");
+        info.className = "deck-info";
+
+        info.innerHTML = `
+            <h3>${deck.deck}</h3>
+            <p>Vitorias: ${deck.records.victories}</p>
+            <p>Derrotas: ${deck.records.defeats}</p>
+            <p>Empates: ${deck.records.draws}</p>
+            <p>Saldo: ${deck.records.balance}</p>
+        `;
+
+        div.appendChild(img);
+        div.appendChild(info);
+        return div;
+      };
+
+      function renderSummary(data) {
+        const ctx = document.getElementById("summary");
+
+        ctx.className = "summary";
+        ctx.innerHTML = "";
+
+        const detailsSection = document.createElement("div");
+        detailsSection.className = "details-section";
+        detailsSection.innerHTML = `<h1>${data.details.name}</h1>`;
+
+        detailsSection.appendChild(createDeckSummary(data.details));
+
+        const bestSection = document.createElement("div");
+        bestSection.className = "deck-section";
+        bestSection.innerHTML = "<h2>Melhores Confrontos</h2>";
+
+        const bestContent = document.createElement("div");
+        bestContent.className = "deck-content";
+        data.good_matches
+          .slice(0, 3)
+          .forEach((deck) => bestContent.appendChild(createDeckBlock(deck)));
+
+        const worstSection = document.createElement("div");
+        worstSection.className = "deck-section";
+        worstSection.innerHTML = "<h2>Piores Confrontos</h2>";
+
+        const worstContent = document.createElement("div");
+        worstContent.className = "deck-content";
+        data.bad_matches
+          .slice(0, 3)
+          .forEach((deck) => worstContent.appendChild(createDeckBlock(deck)));
+
+        bestSection.appendChild(bestContent);
+        worstSection.appendChild(worstContent);
+
+        ctx.appendChild(detailsSection);
+        ctx.appendChild(bestSection);
+        ctx.appendChild(worstSection);
+      }
+
+      async function sendData() {
+        const deckSelect = document.getElementById("deckSelect");
+        const tournamentSelect = document.getElementById("tournamentSelect");
+
+        const radioGroup = document.querySelectorAll(".radio-group");
+
+        radioGroup.forEach((radio) => {
+          if (!radio.classList.contains("visible")) {
+            radio.classList.add("visible");
+          }
+        });
+
+        const radios = document.getElementsByName("day");
+
+        let selectedValue = "";
+        for (const radio of radios) {
+          if (radio.checked) {
+            selectedValue = radio.id;
+            radioActive = radio.id;
+            break;
+          }
+        }
+
+        selectedDeck = deckSelect.value;
+        selectedTournament = tournamentSelect.value;
+
+        const payload = {
+          deck: selectedDeck,
+          tournament: selectedTournament,
+        };
+
+        try {
+          const response = await fetch("http://localhost:3000/send", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            throw new Error("Erro ao receber dados do servidor.");
+          }
+
+          const responseData = await response.json();
+          dataChart = responseData.performances;
+
+          renderChart(
+            dataChart[selectedValue],
+            selectedDeck,
+            selectedTournament
+          );
+          renderSummary(responseData.summary);
+        } catch (error) {
+          alert(`Erro: ${error.message}`);
+        }
+      }
+
+      async function init() {
+        const data = await fetchData();
+        populateSelectors(data);
+
+        const getDataButton = document.getElementById("getDataButton");
+        getDataButton.addEventListener("click", sendData);
+
+        const initialDeck = Object.keys(data)[0];
+        renderChart(data[initialDeck], initialDeck);
+      }
+
+      init();
+
+      const radios = document.getElementsByName("day");
+
+      radios.forEach((radio) => {
+        radio.addEventListener("change", () => {
+          if (radio.checked) {
+            radioActive = radio.id;
+            renderChart(dataChart[radio.id], selectedDeck, selectedTournament);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
