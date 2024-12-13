@@ -1,0 +1,21 @@
+name: Create config.js
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Create config.js
+        run: |
+          echo "const config = {" > config.js
+          echo "  apiUrl: 'http://localhost:3000.com'," >> config.js
+          echo "};" >> config.js
+        working-directory: .

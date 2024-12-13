@@ -52,10 +52,11 @@
 
     <footer>
       <p style="display: flex; justify-content: center; align-items: center">
-        Contate-nos 📧 ganeko.software@gmail.com
+        Contato 📧 ganeko.software@gmail.com
         <img src="assets/shiny-magikarp.png" width="32px" />
       </p>
     </footer>
+    <script src="./config.js"></script>
 
     <script>
       const root = document.documentElement;
@@ -123,7 +124,7 @@
 
       async function fetchData() {
         const response = await fetch(
-          "https://southamerica-east1-data-karp.cloudfunctions.net/get-decks-and-tournaments"
+          `${window.CONFIG.apiUrl}/get-decks-and-tournaments`
         );
         return await response.json();
       }
@@ -408,7 +409,7 @@
 
         try {
           const response = await fetch(
-            `https://southamerica-east1-data-karp.cloudfunctions.net/get-results?${new URLSearchParams(
+            `${window.CONFIG.apiUrl}/get-results?${new URLSearchParams(
               payload
             ).toString()}`
           );
