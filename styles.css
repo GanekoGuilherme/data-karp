@@ -38,6 +38,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 100vh;
 }
 
 h1 {
@@ -115,7 +116,7 @@ canvas {
   background-size: cover;
   border: 5px solid var(--border-color);
   border-radius: 15px;
-  margin-top: 30px;
+  margin-top: 16px;
   background-color: var(--secondary-bg);
   padding: 16px;
 }
@@ -148,16 +149,6 @@ footer a:hover {
   width: 100%;
 }
 
-.summary {
-  background-color: var(--secondary-bg);
-  color: var(--text-color);
-  padding-bottom: 10px;
-  margin: 60px 0px;
-  border-radius: 10px;
-  width: 1100px;
-  border: 5px solid var(--border-color);
-}
-
 .deck-summary {
   display: flex;
   align-items: center;
@@ -177,35 +168,10 @@ footer a:hover {
   margin-top: 32px;
 }
 
-.deck-content {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-
 .deck-section h2 {
   margin-top: 20px;
   font-size: 1.5em;
   color: var(--highlight-color);
-}
-
-.deck-block {
-  display: flex;
-  gap: 15px;
-  padding: 10px;
-  border-radius: 8px;
-  margin-left: 16px;
-  width: 250px;
-  align-items: center;
-}
-
-.deck-block-summary {
-  display: flex;
-  gap: 15px;
-  padding: 10px;
-  border-radius: 8px;
-  margin-left: 16px;
-  justify-content: space-evenly;
 }
 
 .deck-block-summary > :first-child {
@@ -230,42 +196,163 @@ footer a:hover {
   border-radius: 8px;
 }
 
-.deck-info {
-  margin-left: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: baseline;
-}
-
-.deck-info h3 {
-  margin: 0;
-  font-size: 1.2em;
-  color: var(--text-color);
-}
-
-.deck-info p {
-  margin: 3px 0;
-  font-size: 0.9em;
-  color: var(--text-color);
-}
-
-.deck-info p:first-of-type {
-  margin-top: 16px;
-}
-
 .radio-group {
   display: none;
 }
 
-.radio-group.visible {
-  display: inline-block;
-  margin-top: 16px;
-  margin-bottom: 16px;
+@media (min-width: 800px) {
+  .radio-group.visible {
+    display: inline-block;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    width: 1100px;
+    align-items: center;
+  }
+
+  .deck-block-summary {
+    display: flex;
+    gap: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    margin-left: 16px;
+    justify-content: space-evenly;
+  }
+
+  .deck-block {
+    display: flex;
+    gap: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    margin-left: 16px;
+    width: 250px;
+    align-items: center;
+  }
+
+  .summary {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    padding-bottom: 10px;
+    margin: 60px 0px;
+    border-radius: 10px;
+    width: 1048px;
+    border: 5px solid var(--border-color);
+  }
+
+  .deck-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .deck-info {
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+  }
+
+  .deck-info h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--text-color);
+  }
+
+  .deck-info p {
+    margin: 3px 0;
+    font-size: 0.9em;
+    color: var(--text-color);
+  }
+
+  .deck-info p:first-of-type {
+    margin-top: 16px;
+  }
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  width: 1100px;
-  align-items: center;
+@media (max-width: 800px) {
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: initial;
+    gap: 4px;
+  }
+
+  #section-chart {
+    width: 340px !important;
+  }
+
+  #getDataButton {
+    margin: 16px 0;
+  }
+
+  .deck-block-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .deck-block {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border-radius: 8px;
+    margin-left: 16px;
+    align-items: center;
+    width: 310px;
+  }
+
+  .deck-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .summary {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    padding-bottom: 10px;
+    margin: 30px 0px;
+    border-radius: 10px;
+    border: 5px solid var(--border-color);
+  }
+
+  .deck-info {
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    width: 100%;
+  }
+
+  .deck-info h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--text-color);
+  }
+
+  .deck-info p {
+    margin: 3px 0;
+    font-size: 0.9em;
+    color: var(--text-color);
+  }
+
+  .deck-info p:first-of-type {
+    margin-top: 16px;
+  }
+
+  .deck-image {
+    width: auto;
+    height: 140px;
+    margin-top: 12px;
+  }
+}
+
+.main {
+  flex: 1;
 }
