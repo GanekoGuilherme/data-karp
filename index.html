@@ -3,53 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="assets/magikarp.png" type="image/png" />
     <title>DataKarp</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div style="display: flex; align-items: center">
-      <h1>DataKarp</h1>
-    </div>
-    <button id="toggleThemeButton" class="floating-button">
-      <img src="assets/theme.png" width="20px" />
-    </button>
-    <div class="header">
-      <label for="deckSelect">Escolha o Deck:</label>
-      <select id="deckSelect"></select>
+    <div class="main">
+      <div style="display: flex; justify-content: center">
+        <h1>DataKarp</h1>
+      </div>
+      <button id="toggleThemeButton" class="floating-button">
+        <img src="assets/theme.png" width="20px" />
+      </button>
+      <div class="header">
+        <label for="deckSelect">Escolha o Deck:</label>
+        <select id="deckSelect"></select>
 
-      <label for="tournamentSelect">Escolha o Torneio:</label>
-      <select id="tournamentSelect"></select>
+        <label for="tournamentSelect">Escolha o Torneio:</label>
+        <select id="tournamentSelect"></select>
 
-      <button id="getDataButton" class="btn">Buscar</button>
-    </div>
+        <button id="getDataButton" class="btn">Buscar</button>
+      </div>
 
-    <div
-      style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        margin-top: 16px;
-      "
-    >
-      <div style="display: flex; flex-direction: column; align-items: center">
-        <div class="radio-group">
-          <input type="radio" id="total" name="day" value="Total" checked />
-          <label for="total">Total</label>
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+        "
+      >
+        <div style="display: flex; flex-direction: column; align-items: center">
+          <div class="radio-group">
+            <input type="radio" id="total" name="day" value="Total" checked />
+            <label for="total">Total</label>
 
-          <input type="radio" id="day1" name="day" value="Dia 1" />
-          <label for="day1">Dia 1</label>
+            <input type="radio" id="day1" name="day" value="Dia 1" />
+            <label for="day1">Dia 1</label>
 
-          <input type="radio" id="day2" name="day" value="Dia 2" />
-          <label for="day2">Dia 2</label>
+            <input type="radio" id="day2" name="day" value="Dia 2" />
+            <label for="day2">Dia 2</label>
+          </div>
+
+          <div id="section-chart" style="width: 1058px">
+            <canvas id="chart" style="width: max-content"></canvas>
+          </div>
+          <div id="summary"></div>
         </div>
-
-        <canvas id="chart" width="1058px"></canvas>
-        <div id="summary"></div>
       </div>
     </div>
-
     <footer>
       <p style="display: flex; justify-content: center; align-items: center">
         Contato 📧 ganeko.software@gmail.com
@@ -152,94 +155,107 @@
 
       function renderChart(data, deck, tournament = "Torneio") {
         const ctx = document.getElementById("chart").getContext("2d");
+        if (window.innerWidth > 800) {
+          if (chart) {
+            chart.destroy();
+          }
 
-        if (chart) {
-          chart.destroy();
+          const labels = Object.keys(data);
+          const victories = labels.map((deck) => data[deck].victories);
+          const defeats = labels.map((deck) => data[deck].defeats);
+          const draws = labels.map((deck) => data[deck].draws);
+
+          const configuration = {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: "Vitórias",
+                  data: victories,
+                  backgroundColor: "rgba(75, 192, 192, 0.6)",
+                },
+                {
+                  label: "Derrotas",
+                  data: defeats,
+                  backgroundColor: "rgba(255, 99, 132, 0.6)",
+                },
+                {
+                  label: "Empates",
+                  data: draws,
+                  backgroundColor: "rgba(255, 205, 86, 0.6)",
+                },
+              ],
+            },
+            options: {
+              plugins: {
+                title: {
+                  display: true,
+                  text: `${deck} contra Adversários - ${tournament}`,
+                  font: {
+                    size: 24,
+                  },
+                  color: getComputedStyle(document.documentElement)
+                    .getPropertyValue("--highlight-color")
+                    .trim(),
+                },
+                legend: {
+                  labels: {
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                  },
+                },
+              },
+              responsive: true,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Adversários",
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                  },
+                  ticks: {
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                  },
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Número de Partidas",
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                  },
+                  ticks: {
+                    stepSize: 1,
+                    color: getComputedStyle(document.documentElement)
+                      .getPropertyValue("--text-color")
+                      .trim(),
+                  },
+                },
+              },
+            },
+          };
+
+          chart = new Chart(ctx, configuration);
+        } else {
+          ctx.font = "16px Arial";
+          ctx.fillStyle = "red";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const centerX = document.getElementById("chart").width / 2;
+          const centerY = document.getElementById("chart").height / 2;
+          ctx.fillText(
+            "Gráficos indisponíveis nesta resolução!",
+            centerX,
+            centerY
+          );
         }
-
-        const labels = Object.keys(data);
-        const victories = labels.map((deck) => data[deck].victories);
-        const defeats = labels.map((deck) => data[deck].defeats);
-        const draws = labels.map((deck) => data[deck].draws);
-
-        const configuration = {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Vitórias",
-                data: victories,
-                backgroundColor: "rgba(75, 192, 192, 0.6)",
-              },
-              {
-                label: "Derrotas",
-                data: defeats,
-                backgroundColor: "rgba(255, 99, 132, 0.6)",
-              },
-              {
-                label: "Empates",
-                data: draws,
-                backgroundColor: "rgba(255, 205, 86, 0.6)",
-              },
-            ],
-          },
-          options: {
-            plugins: {
-              title: {
-                display: true,
-                text: `${deck} contra Adversários - ${tournament}`,
-                font: {
-                  size: 24,
-                },
-                color: getComputedStyle(document.documentElement)
-                  .getPropertyValue("--highlight-color")
-                  .trim(),
-              },
-              legend: {
-                labels: {
-                  color: getComputedStyle(document.documentElement)
-                    .getPropertyValue("--text-color")
-                    .trim(),
-                },
-              },
-            },
-            responsive: true,
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: "Adversários",
-                  color: getComputedStyle(document.documentElement)
-                    .getPropertyValue("--text-color")
-                    .trim(),
-                },
-                ticks: {
-                  color: getComputedStyle(document.documentElement)
-                    .getPropertyValue("--text-color")
-                    .trim(),
-                },
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: "Número de Partidas",
-                  color: getComputedStyle(document.documentElement)
-                    .getPropertyValue("--text-color")
-                    .trim(),
-                },
-                ticks: {
-                  stepSize: 1,
-                  color: getComputedStyle(document.documentElement)
-                    .getPropertyValue("--text-color")
-                    .trim(),
-                },
-              },
-            },
-          },
-        };
-
-        chart = new Chart(ctx, configuration);
       }
 
       const createDeckSummary = (data) => {
@@ -329,6 +345,7 @@
             <p>Derrotas: ${deck.records.defeats}</p>
             <p>Empates: ${deck.records.draws}</p>
             <p>Saldo: ${deck.records.balance}</p>
+            <div class="border-bot"></div>
         `;
 
         div.appendChild(img);
