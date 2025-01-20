@@ -258,6 +258,111 @@
         }
       }
 
+      function sortByAmount(data) {
+        // Converte o objeto em um array de entradas [key, value]
+        const entries = Object.entries(data);
+
+        // Ordena as entradas com base no valor de "amount"
+        const sortedEntries = entries.sort(
+          ([, a], [, b]) => b.amount - a.amount
+        );
+
+        // Converte de volta para um objeto ordenado
+        const sortedObject = Object.fromEntries(sortedEntries);
+
+        return sortedObject;
+      }
+
+      const createTournamentSummary = (data) => {
+        const div = document.createElement("div");
+        div.id = "chartContainer";
+        div.style.height = "370px";
+        div.style.width = "100%";
+
+        const cvChart2 = document.createElement("canvas");
+        cvChart2.id = "chart2";
+        div.appendChild(cvChart2);
+
+        const ctx = cvChart2.getContext("2d");
+        console.log(data.decks);
+
+        const pie1 = sortByAmount(data.decks);
+        delete pie1.ND;
+
+        new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: Object.keys(pie1),
+            datasets: [
+              {
+                label: "Distribuição de Vendas",
+                data: Object.values(pie1).map((aux) => aux.amount),
+                backgroundColor: ["#ff5733", "#33c4ff", "#33ff57", "#ffc133"],
+                borderColor: "#fff",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return `${context.label}: ${context.raw}%`;
+                  },
+                },
+              },
+            },
+          },
+        });
+        // chart2.render();
+
+        // div.className = "deck-block-summary";
+
+        const info1 = document.createElement("div");
+        // info1.className = "deck-info";
+
+        info1.innerHTML = `
+            <h1>Gráfico de Pizza em HTML</h1>
+        `;
+
+        const info2 = document.createElement("div");
+        info2.className = "deck-info";
+
+        info2.innerHTML = `
+            <h3>Dia 2</h3>
+            <p>Jogadores: ${data?.amount_day2 ?? "ND"}${
+          data?.percentage * 100 ? " (" + data?.percentage * 100 + "%)" : ""
+        }</p>
+
+
+        `;
+
+        const info3 = document.createElement("div");
+        info3.className = "deck-info";
+
+        info3.innerHTML = `
+            <h3>Melhores Colocações</h3>
+        `;
+
+        if (!data.placings?.length) {
+          info3.innerHTML += `<p>ND</p>`;
+        } else {
+          data.placings.splice(0, 5).forEach((placing) => {
+            info3.innerHTML += `<p>${placing.placing}º - ${placing.name}</p>`;
+          });
+        }
+
+        div.appendChild(info1);
+        div.appendChild(info2);
+        div.appendChild(info3);
+        return div;
+      };
+
       const createDeckSummary = (data) => {
         const div = document.createElement("div");
         div.className = "deck-block-summary";
@@ -361,9 +466,11 @@
 
         const detailsSection = document.createElement("div");
         detailsSection.className = "details-section";
-        detailsSection.innerHTML = `<h1>${data.details.name}</h1>`;
+        detailsSection.innerHTML = `<h1>Resumo</h1>`;
 
-        detailsSection.appendChild(createDeckSummary(data.details));
+        // detailsSection.appendChild(createTournamentSummary(data.tournament));
+
+        detailsSection.appendChild(createDeckSummary(data.deck.details));
 
         const bestSection = document.createElement("div");
         bestSection.className = "deck-section";
@@ -371,7 +478,7 @@
 
         const bestContent = document.createElement("div");
         bestContent.className = "deck-content";
-        data.good_matches
+        data.deck.good_matches
           .slice(0, 3)
           .forEach((deck) => bestContent.appendChild(createDeckBlock(deck)));
 
@@ -381,7 +488,7 @@
 
         const worstContent = document.createElement("div");
         worstContent.className = "deck-content";
-        data.bad_matches
+        data.deck.bad_matches
           .slice(0, 3)
           .forEach((deck) => worstContent.appendChild(createDeckBlock(deck)));
 
@@ -443,6 +550,7 @@
             selectedDeck,
             selectedTournament
           );
+
           renderSummary(responseData.summary);
         } catch (error) {
           alert(`Erro: ${error.message}`);
